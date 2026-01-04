@@ -181,4 +181,42 @@
         font-size: 1.8rem; /* 縮小手機版標題字體 */
         letter-spacing: 5px;
     }
+    
+}
+/* --- 彈珠遊戲整合樣式 --- */
+.game-wrapper {
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    gap: 30px;
+    padding: 40px 0;
+}
+
+.game-glass-panel {
+    background: rgba(255, 255, 255, 0.05);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(0, 242, 255, 0.3);
+    padding: 25px;
+    border-radius: 20px;
+    width: 220px;
+    text-align: center;
+}
+
+.game-title { font-size: 24px; font-weight: 900; color: #00f2ff; text-shadow: 0 0 10px #00f2ff; margin-bottom: 20px; }
+.game-label { font-size: 12px; color: #888; letter-spacing: 2px; }
+.game-value { font-size: 36px; font-weight: bold; color: #ff007f; text-shadow: 0 0 15px #ff007f; margin-bottom: 20px; }
+
+#gameCanvas {
+    background: #05050a;
+    border: 4px solid #34495e;
+    border-radius: 25px;
+    box-shadow: 0 0 50px rgba(0, 242, 255, 0.1);
+    max-width: 100%;
+}
+
+.game-power-bg { width: 100%; height: 200px; background: #111; border-radius: 10px; position: relative; overflow: hidden; border: 1px solid #333; }
+#power-bar { position: absolute; bottom: 0; width: 100%; background: linear-gradient(0deg, #ff007f, #00f2ff); transition: height 0.05s; }
+
+@media (max-width: 800px) {
+    .game-wrapper { flex-direction: column; align-items: center; }
 }

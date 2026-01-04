@@ -1,3 +1,4 @@
+let gameInitialized = false;
 // --- 完整夜市資料庫 ---
         const allMarkets = [
         {id: 1, region: "北部", city: "基隆市", name: "基隆廟口夜市", food: "鼎邊趖、營養三明治、泡泡冰、天婦羅", sort: 1},
@@ -206,25 +207,39 @@
 
         // --- Tab 切換 ---
         function switchTab(i) {
-            document.querySelectorAll('.tab-item').forEach((t, idx) => t.classList.toggle('active', idx === i));
-            document.querySelectorAll('.page-content').forEach((p, idx) => p.classList.toggle('active', idx === i));
-            if(i === 1) renderMarkets('marketList');
-            if(i >= 2) {
-                const guards = [null, null, 'guard-2', 'guard-3', 'guard-4'];
-                const lists = [null, null, 'favoriteList', 'noteList', 'communityContainer'];
-                const guardEl = document.getElementById(guards[i]);
-                const listEl = document.getElementById(lists[i]);
-                if(!currentUser) {
-                    guardEl.style.display = 'block'; listEl.style.display = 'none';
-                } else {
-                    guardEl.style.display = 'none'; 
-                    listEl.style.display = (i === 2) ? 'grid' : 'block';
-                    if(i === 2) renderMarkets('favoriteList');
-                    if(i === 3) renderNotes();
-                    if(i === 4) renderCommunity();
-                }
-            }
+    document.querySelectorAll('.tab-item').forEach((t, idx) => t.classList.toggle('active', idx === i));
+    document.querySelectorAll('.page-content').forEach((p, idx) => p.classList.toggle('active', idx === i));
+    
+    if(i === 1) renderMarkets('marketList');
+    
+    // 遊戲頁面 (Page 5) 不受登入限制，直接進入
+    if(i === 5) {
+        if(!gameInitialized) {
+            initMarbleGame();
+            gameInitialized = true;
         }
+        return; 
+    }
+
+    // 處理需要登入保護的頁面 (Page 2, 3, 4)
+    if(i >= 2 && i <= 4) {
+        const guards = [null, null, 'guard-2', 'guard-3', 'guard-4'];
+        const lists = [null, null, 'favoriteList', 'noteList', 'communityContainer'];
+        const guardEl = document.getElementById(guards[i]);
+        const listEl = document.getElementById(lists[i]);
+        
+        if(!currentUser) {
+            guardEl.style.display = 'block'; 
+            listEl.style.display = 'none';
+        } else {
+            guardEl.style.display = 'none'; 
+            listEl.style.display = (i === 2) ? 'grid' : 'block';
+            if(i === 2) renderMarkets('favoriteList');
+            if(i === 3) renderNotes();
+            if(i === 4) renderCommunity();
+        }
+    }
+}
 
         // --- 收藏/筆記邏輯 ---
         function toggleFav(id, e) {
@@ -376,3 +391,160 @@ window.onload = () => {
     updateCityCheckboxes(); 
     renderMarkets('marketList'); 
 };
+// --- 夜市彈珠王遊戲邏輯 (獨立函數) ---
+function initMarbleGame() {
+    const canvas = document.getElementById("gameCanvas");
+    if (!canvas) return;
+    const ctx = canvas.getContext("2d");
+
+    let totalScore = 1000, bet = 10, power = 0, isCharging = false, ballActive = false;
+    let ball = { x: 435, y: 680, vx: 0, vy: 0, r: 8 };
+
+    const pegs = [];
+    for (let r = 0; r < 11; r++) {
+        let cols = (r % 2 === 0) ? 9 : 8;
+        for (let c = 0; c < cols; c++) {
+            pegs.push({
+                originX: c * 46 + (r % 2 === 0 ? 40 : 63),
+                originY: r * 48 + 160,
+                x: 0, y: 0, r: 4, shake: 0
+            });
+        }
+    }
+
+    const zones = [10, 5, 2, 0, 2, 5, 10];
+    const zoneWidth = 410 / zones.length;
+
+    window.addEventListener("keydown", e => {
+        // 只有在遊戲頁面啟動時才響應按鍵
+        if (document.getElementById('page-5').classList.contains('active')) {
+            if (e.code === "Space" && !ballActive) { e.preventDefault(); isCharging = true; }
+            if (e.code === "ArrowUp") { e.preventDefault(); bet = Math.min(totalScore, bet + 10); updateUI(); }
+            if (e.code === "ArrowDown") { e.preventDefault(); bet = Math.max(10, bet - 10); updateUI(); }
+        }
+    });
+    
+    window.addEventListener("keyup", e => {
+        if (e.code === "Space" && isCharging) { launch(); isCharging = false; }
+    });
+
+    function updateUI() {
+        document.getElementById("total-score").innerText = totalScore;
+        document.getElementById("bet-amount").innerText = bet;
+        document.getElementById("power-bar").style.height = power + "%";
+    }
+
+    function launch() {
+        if(totalScore < bet) { alert("餘額不足！"); return; }
+        totalScore -= bet;
+        ballActive = true;
+        ball.x = 435; ball.y = 680;
+        ball.vx = 0;
+        ball.vy = -(power / 4 + 16); 
+        power = 0;
+        updateUI();
+    }
+
+    function update() {
+        if (isCharging) { power = Math.min(100, power + 2.5); updateUI(); }
+        if (ballActive) {
+            ball.vy += 0.28;
+            ball.vx *= 0.995;
+            ball.x += ball.vx;
+            ball.y += ball.vy;
+
+            // 頂部導軌
+            if (ball.y < 120) {
+                let centerX = 340, centerY = 120, radius = 100;
+                let dist = Math.hypot(ball.x - centerX, ball.y - centerY);
+                if (dist > radius && ball.x > 300) {
+                    let angle = Math.atan2(ball.y - centerY, ball.x - centerX);
+                    ball.x = centerX + Math.cos(angle) * radius;
+                    ball.y = centerY + Math.sin(angle) * radius;
+                    ball.vx -= 2.5; 
+                    ball.vy += 1;
+                }
+            }
+
+            if (ball.x < ball.r) { ball.x = ball.r; ball.vx *= -0.5; }
+            if (ball.x > 460 - ball.r) { ball.x = 460 - ball.r; ball.vx *= -0.5; }
+            if (ball.y < ball.r) { ball.y = ball.r; ball.vy *= -0.5; }
+
+            pegs.forEach(p => {
+                let dx = ball.x - p.x, dy = ball.y - p.y;
+                let dist = Math.hypot(dx, dy);
+                if (dist < ball.r + p.r) {
+                    p.shake = 10;
+                    let angle = Math.atan2(dy, dx);
+                    let speed = Math.hypot(ball.vx, ball.vy) * 0.8;
+                    ball.vx = Math.cos(angle + (Math.random()-0.5)*0.1) * (speed + 1.2);
+                    ball.vy = Math.sin(angle + (Math.random()-0.5)*0.1) * (speed + 1.2);
+                    ball.x = p.x + Math.cos(angle) * (ball.r + p.r + 1);
+                    ball.y = p.y + Math.sin(angle) * (ball.r + p.r + 1);
+                }
+            });
+
+            if (ball.y > 700) {
+                if (ball.x < 410) {
+                    let idx = Math.floor(ball.x / zoneWidth);
+                    totalScore += bet * zones[idx];
+                }
+                ballActive = false;
+                updateUI();
+            }
+        }
+    }
+
+    function draw() {
+        ctx.fillStyle = "#05050a";
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        
+        // 裝飾軌道
+        ctx.strokeStyle = "#1a1a2e";
+        ctx.lineWidth = 15;
+        ctx.beginPath();
+        ctx.arc(340, 120, 100, Math.PI, Math.PI * 1.5);
+        ctx.stroke();
+
+        // 獎金區
+        zones.forEach((z, i) => {
+            ctx.fillStyle = z === 0 ? "#333" : `hsl(${i * 45}, 80%, 50%)`;
+            ctx.globalAlpha = 0.15;
+            ctx.fillRect(i * zoneWidth, 660, zoneWidth, 60);
+            ctx.globalAlpha = 1;
+            ctx.fillStyle = "#fff";
+            ctx.font = "bold 18px Arial";
+            ctx.fillText(z + "x", i * zoneWidth + zoneWidth/2 - 10, 700);
+        });
+
+        // 釘子
+        pegs.forEach(p => {
+            p.x = p.originX + (Math.random() - 0.5) * p.shake;
+            p.y = p.originY + (Math.random() - 0.5) * p.shake;
+            if (p.shake > 0) p.shake *= 0.8;
+            ctx.beginPath();
+            ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+            ctx.fillStyle = p.shake > 1 ? "#fff" : "#00f2ff";
+            ctx.fill();
+        });
+
+        // 彈珠
+        if (ballActive) {
+            ctx.beginPath();
+            ctx.arc(ball.x, ball.y, ball.r, 0, Math.PI * 2);
+            ctx.fillStyle = "#fff";
+            ctx.shadowBlur = 20;
+            ctx.shadowColor = "#fff";
+            ctx.fill();
+            ctx.shadowBlur = 0;
+        }
+
+        // 通道
+        ctx.fillStyle = "#111";
+        ctx.fillRect(410, 120, 10, 600);
+
+        update();
+        requestAnimationFrame(draw);
+    }
+    draw();
+}

@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>全台夜市互動導覽</title>
+    <title>夜市挖寶趣：互動導覽不踩雷</title>
 
     <!-- CSS -->
     <link rel="stylesheet" href="style.css">
@@ -15,16 +15,18 @@
         <button class="auth-btn-login" onclick="openAuth('login')">登入</button>
         <button class="auth-btn-reg" onclick="openAuth('register')">註冊</button>
     </div>
-    <h1>全台夜市互動導覽</h1>
+    <h1>夜市挖寶趣：互動導覽不踩雷</h1>
 </header>
 
 <div class="main-container">
     <div class="tab-container">
-        <div class="tab-item active" onclick="switchTab(0)">探索美食</div>
+        <div class="tab-item active" onclick="switchTab(0)">首頁</div>
+        
         <div class="tab-item" onclick="switchTab(1)">搜尋夜市</div>
         <div class="tab-item" onclick="switchTab(2)">蒐藏夾 (<span id="favCount">0</span>)</div>
         <div class="tab-item" onclick="switchTab(3)">筆記本</div>
         <div class="tab-item" onclick="switchTab(4)">社區討論</div>
+        <div class="tab-item" onclick="switchTab(5)">夜市小遊戲</div>
     </div>
 
     <div id="page-0" class="page-content active">
@@ -71,17 +73,42 @@
     </div>
 </div>
 
+<div id="page-5" class="page-content">
+        <div class="game-wrapper">
+            <div class="game-glass-panel">
+                <div class="game-title">彈珠大王 PRO</div>
+                <div class="game-label">CREDITS</div>
+                <div class="game-value" id="total-score">1000</div>
+                <div class="game-label">CURRENT BET</div>
+                <div class="game-value" style="color:#ffcc00; text-shadow:0 0 10px #ffcc00" id="bet-amount">10</div>
+                
+                <div class="game-label">SPRING POWER</div>
+                <div class="game-power-bg"><div id="power-bar" style="height: 0%"></div></div>
+                <p style="color: #888; font-size: 12px; margin-top: 15px;">[空白鍵] 發射<br>[上下方向鍵] 調整倍率</p>
+            </div>
+            <canvas id="gameCanvas" width="460" height="720"></canvas>
+        </div>
+    </div>
+
+<dialog id="mapDialog">
+        <div style="background:#5a6a7a; color:white; padding:15px; display:flex; justify-content:space-between; align-items:center;">
+            <span id="mapTitle" style="font-weight:bold;">位置導覽</span>
+            <button onclick="document.getElementById('mapDialog').close()" style="background:none; border:none; color:white; font-size:20px; cursor:pointer;">×</button>
+        </div>
+        <div id="mapContainer"></div>
+    </dialog>
+
 <!-- 心得 Modal -->
 <div id="commentModal" class="modal">
     <div class="modal-content">
         <h2 id="commentTargetName">夜市心得</h2>
-        <textarea id="commentText" class="modal-input" style="height:120px;"></textarea>
-        <div style="display:flex;gap:10px;">
-            <button onclick="saveComment('note')">存到筆記本</button>
-            <button onclick="saveComment('community')">分享到社區</button>
+        <textarea id="commentText" class="modal-input" style="height:120px; resize:none;" placeholder="這裡有什麼必吃的嗎？"></textarea>
+            <div style="display:flex; gap:10px;">
+                <button onclick="saveComment('note')" style="flex:1; padding:12px; background:#f0f2f5; border:none; border-radius:10px; cursor:pointer;">存到筆記本</button>
+                <button onclick="saveComment('community')" style="flex:1; padding:12px; background:#5a6a7a; color:white; border:none; border-radius:10px; cursor:pointer;">分享到社區</button>
+            </div>
+            <button onclick="closeComment()" style="background:none; border:none; color:#bbb; margin-top:15px; cursor:pointer;">取消</button>
         </div>
-        <button onclick="closeComment()">取消</button>
-    </div>
 </div>
 
 <!-- 登入 Modal -->
@@ -108,5 +135,9 @@
 
 <!-- JS -->
 <script src="script.js"></script>
+<footer style="text-align: center; padding: 20px;">
+    <p style="color: #ffffff; margin: 0;">&copy; 開逛囉！全台夜市導航神器</p>
+</footer>
 </body>
+
 </html>
