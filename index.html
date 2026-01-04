@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>全台夜市互動導覽</title>
+
+    <!-- CSS -->
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<header class="header-bar">
+    <div class="auth-zone" id="authZone">
+        <button class="auth-btn-login" onclick="openAuth('login')">登入</button>
+        <button class="auth-btn-reg" onclick="openAuth('register')">註冊</button>
+    </div>
+    <h1>全台夜市互動導覽</h1>
+</header>
+
+<div class="main-container">
+    <div class="tab-container">
+        <div class="tab-item active" onclick="switchTab(0)">探索美食</div>
+        <div class="tab-item" onclick="switchTab(1)">搜尋夜市</div>
+        <div class="tab-item" onclick="switchTab(2)">蒐藏夾 (<span id="favCount">0</span>)</div>
+        <div class="tab-item" onclick="switchTab(3)">筆記本</div>
+        <div class="tab-item" onclick="switchTab(4)">社區討論</div>
+    </div>
+
+    <div id="page-0" class="page-content active">
+        <div class="hero-carousel-container" id="carouselWrapper"></div>
+    </div>
+
+    <div id="page-1" class="page-content">
+        <div class="filter-section">
+            <label style="font-weight: bold; color: #ffffff;">區域選擇：</label>
+                <select id="regionFilter" onchange="updateCityCheckboxes(); renderMarkets('marketList');" style="padding: 10px; border-radius: 8px; border: 1px solid #ddd;">
+                    <option value="">全部區域</option>
+                    <option value="北部">北部</option>
+                    <option value="中部">中部</option>
+                    <option value="南部">南部</option>
+                    <option value="東部">東部</option>
+                </select>
+            <div id="cityFilters" class="city-grid"></div>
+        </div>
+        <div id="marketList" class="market-list-grid"></div>
+    </div>
+
+    <div id="page-2" class="page-content">
+        <div id="guard-2" class="login-guard-msg">請先登入以查看您的蒐藏夾。</div>
+        <div id="favoriteList" class="market-list-grid" style="display:none;"></div>
+    </div>
+
+    <div id="page-3" class="page-content">
+        <div id="guard-3" class="login-guard-msg">請先登入以記錄個人筆記。</div>
+        <div id="noteList" style="display:none;"></div>
+    </div>
+
+    <div id="page-4" class="page-content">
+        <div id="guard-4" class="login-guard-msg">請先登入以進入社區討論區。</div>
+        <div id="communityContainer" style="display:none;">
+            <div class="community-filter">
+                <div class="comm-filter-btn active" onclick="filterCommunity('全部', this)">全部</div>
+                <div class="comm-filter-btn" onclick="filterCommunity('北部', this)">北部</div>
+                <div class="comm-filter-btn" onclick="filterCommunity('中部', this)">中部</div>
+                <div class="comm-filter-btn" onclick="filterCommunity('南部', this)">南部</div>
+                <div class="comm-filter-btn" onclick="filterCommunity('東部', this)">東部</div>
+            </div>
+            <div id="communityList"></div>
+        </div>
+    </div>
+</div>
+
+<!-- 心得 Modal -->
+<div id="commentModal" class="modal">
+    <div class="modal-content">
+        <h2 id="commentTargetName">夜市心得</h2>
+        <textarea id="commentText" class="modal-input" style="height:120px;"></textarea>
+        <div style="display:flex;gap:10px;">
+            <button onclick="saveComment('note')">存到筆記本</button>
+            <button onclick="saveComment('community')">分享到社區</button>
+        </div>
+        <button onclick="closeComment()">取消</button>
+    </div>
+</div>
+
+<!-- 登入 Modal -->
+<div id="authModal" class="modal">
+    <div class="modal-content">
+        <h2 id="modalTitle">帳號登入</h2>
+        <input id="iptUser" class="modal-input" placeholder="帳號">
+        <div id="regOnly" style="display:none;">
+            <input id="iptEmail" class="modal-input" placeholder="Google 信箱">
+        </div>
+        <input id="iptPass" type="password" class="modal-input" placeholder="密碼">
+        <button onclick="submitAuth()" style="width:100%; padding:14px; background:#5a6a7a; color:white; border:none; border-radius:10px; cursor:pointer;">確認</button>
+            <button onclick="closeAuth()" style="background:none; border:none; color:#ccc; margin-top:15px; cursor:pointer;">取消</button>
+    </div>
+</div>
+
+<dialog id="mapDialog">
+    <div>
+        <span id="mapTitle"></span>
+        <button onclick="mapDialog.close()">×</button>
+    </div>
+    <div id="mapContainer"></div>
+</dialog>
+
+<!-- JS -->
+<script src="script.js"></script>
+</body>
+</html>
